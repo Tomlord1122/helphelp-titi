@@ -63,27 +63,15 @@ async function generatePDF(text: string): Promise<Buffer> {
         reject(err);
       });
       
-      // Try to load the Chinese fonts (using TTF format now)
-      let tcFontLoaded = false;
+      // Use a relative path to the font
+      const fontPath = path.join(process.cwd(), 'static', 'fonts', 'KaiTi.ttf');
+      console.log('Looking for TTF font at:', fontPath);
       
-      try {
-        // Load Traditional Chinese TTF font
-        const fontPath = path.join(process.cwd(), 'static', 'fonts', 'KaiTi.ttf');
-        console.log('Looking for TTF font at:', fontPath);
-        
-        if (fs.existsSync(fontPath)) {
-          console.log('TTF font found, registering...');
-          doc.registerFont('Custom', fontPath);
-          tcFontLoaded = true;
-        } else {
-          console.warn('TTF font not found at:', fontPath);
-        }
-      } catch (fontError) {
-        console.error('Error loading font:', fontError);
-      }
-      
-      // Fall back to Helvetica if font loading failed
-      if (!tcFontLoaded) {
+      if (fs.existsSync(fontPath)) {
+        console.log('TTF font found, registering...');
+        doc.registerFont('Custom', fontPath);
+      } else {
+        console.warn('TTF font not found at:', fontPath);
         console.log('Using Helvetica as fallback font, no Chinese fonts loaded');
       }
       
@@ -237,7 +225,7 @@ async function generatePDF(text: string): Promise<Buffer> {
           // 添加字符到格子中
           try {
             // 使用TTF格式的字體
-            if (tcFontLoaded) {
+            if (fs.existsSync(fontPath)) {
               doc.font('Custom');
             } else {
               doc.font('Helvetica');
