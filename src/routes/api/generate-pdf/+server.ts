@@ -67,11 +67,35 @@ async function generatePDF(text: string): Promise<Buffer> {
       const fontPath = path.join(process.cwd(), 'static', 'fonts', 'KaiTi.ttf');
       console.log('Looking for TTF font at:', fontPath);
       
-      if (fs.existsSync(fontPath)) {
+      // Add alternative font paths to check
+      const alternativePaths = [
+        path.join(process.cwd(), 'static', 'fonts', 'KaiTi.ttf'),
+        path.join(process.cwd(), 'build', 'static', 'fonts', 'KaiTi.ttf'),
+        path.join(process.cwd(), 'public', 'fonts', 'KaiTi.ttf'),
+        // For AWS Lambda or similar environments
+        '/opt/fonts/KaiTi.ttf',
+        '/tmp/fonts/KaiTi.ttf'
+      ];
+      
+      // Try to find the font in any of the possible locations
+      let fontFound = false;
+      let usableFontPath = '';
+      
+      for (const testPath of alternativePaths) {
+        console.log('Checking for font at:', testPath);
+        if (fs.existsSync(testPath)) {
+          console.log('TTF font found at:', testPath);
+          usableFontPath = testPath;
+          fontFound = true;
+          break;
+        }
+      }
+      
+      if (fontFound) {
         console.log('TTF font found, registering...');
-        doc.registerFont('Custom', fontPath);
+        doc.registerFont('Custom', usableFontPath);
       } else {
-        console.warn('TTF font not found at:', fontPath);
+        console.warn('TTF font not found in any of the checked locations');
         console.log('Using Helvetica as fallback font, no Chinese fonts loaded');
       }
       
@@ -225,7 +249,7 @@ async function generatePDF(text: string): Promise<Buffer> {
           // 添加字符到格子中
           try {
             // 使用TTF格式的字體
-            if (fs.existsSync(fontPath)) {
+            if (fs.existsSync(usableFontPath)) {
               doc.font('Custom');
             } else {
               doc.font('Helvetica');
