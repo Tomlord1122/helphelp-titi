@@ -3,7 +3,6 @@ import type { RequestEvent } from '@sveltejs/kit';
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
-import https from 'https';
 
 
 
@@ -30,36 +29,8 @@ export async function POST({ request }: RequestEvent) {
   }
 }
 
-async function downloadFont(url: string, destination: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    // Check if font already exists in /tmp
-    if (fs.existsSync(destination)) {
-      return resolve(destination);
-    }
-    
-    // Create directory if it doesn't exist
-    const dir = path.dirname(destination);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    
-    // Download the font
-    const file = fs.createWriteStream(destination);
-    https.get(url, (response) => {
-      response.pipe(file);
-      file.on('finish', () => {
-        file.close();
-        resolve(destination);
-      });
-    }).on('error', (err) => {
-      fs.unlink(destination, () => {});
-      reject(err);
-    });
-  });
-}
-
 async function generatePDF(text: string): Promise<Buffer> {
-  return new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     try {
       console.log('Starting PDF generation');
       console.log(text.length);
@@ -92,17 +63,37 @@ async function generatePDF(text: string): Promise<Buffer> {
         reject(err);
       });
       
-      // Download font to /tmp directory (the only writable location in Vercel)
-      const fontDestination = '/tmp/fonts/KaiTi.ttf';
-      const fontUrl = 'https://github.com/Tomlord1122/helphelp-titi/blob/main/static/fonts/KaiTi.ttf'; // Host your font somewhere accessible
+      // Add alternative font paths to check
+      const alternativePaths = [
+        path.join(process.cwd(), 'static', 'fonts', 'KaiTi.ttf'),
+        path.join(process.cwd(), 'build', 'static', 'fonts', 'KaiTi.ttf'),
+        path.join(process.cwd(), 'public', 'fonts', 'KaiTi.ttf'),
+        path.join("./KaiTi.ttf"),
+        // For AWS Lambda or similar environments
+        '/opt/fonts/KaiTi.ttf',
+        '/tmp/fonts/KaiTi.ttf'
+      ];
       
-      try {
-        const fontPath = await downloadFont(fontUrl, fontDestination);
-        console.log('Font downloaded successfully to:', fontPath);
-        doc.registerFont('Custom', fontPath);
-      } catch (fontError) {
-        console.warn('Failed to download font:', fontError);
-        console.log('Using Helvetica as fallback font');
+      // Try to find the font in any of the possible locations
+      let fontFound = false;
+      let usableFontPath = '';
+      
+      for (const testPath of alternativePaths) {
+        console.log('Checking for font at:', testPath);
+        if (fs.existsSync(testPath)) {
+          console.log('TTF font found at:', testPath);
+          usableFontPath = testPath;
+          fontFound = true;
+          break;
+        }
+      }
+      
+      if (fontFound) {
+        console.log('TTF font found, registering...');
+        doc.registerFont('Custom', usableFontPath);
+      } else {
+        console.warn('TTF font not found in any of the checked locations');
+        console.log('Using Helvetica as fallback font, no Chinese fonts loaded');
       }
       
       // Set up the grid parameters (in points, 1cm = 28.35pt)
@@ -255,7 +246,7 @@ async function generatePDF(text: string): Promise<Buffer> {
           // 添加字符到格子中
           try {
             // 使用TTF格式的字體
-            if (fs.existsSync(fontDestination)) {
+            if (fs.existsSync(usableFontPath)) {
               doc.font('Custom');
             } else {
               doc.font('Helvetica');
