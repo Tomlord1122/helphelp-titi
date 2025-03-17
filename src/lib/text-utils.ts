@@ -32,8 +32,15 @@ export function processTextForGrid(text: string, maxLength: number = 5000): stri
       }
     }
     
-    // Add the characters from this line
-    result.push(...chars);
+    // If the line is empty, add a full row of empty cells
+    if (line.trim() === '') {
+      for (let i = 0; i < rowLength; i++) {
+        result.push('');
+      }
+    } else {
+      // Add the characters from this line
+      result.push(...chars);
+    }
   }
   
   return result;

@@ -130,25 +130,37 @@ async function generatePDF(text: string): Promise<Buffer> {
       console.log(`Total characters to process: ${characters.length}`);
       
       // 計算總頁數 (向上取整)
-      // 需要考慮換行符的影響，所以先計算實際需要的格子數
+      // 需要考慮換行符和空行的影響，所以先計算實際需要的格子數
       let totalGridsNeeded = 0;
-      for (let i = 0; i < characters.length; i++) {
-        if (characters[i] === '\n') {
-          // 換行符：移到下一行開始
-          const currentCol = totalGridsNeeded % gridsPerRow;
-          if (currentCol > 0) { // 只有在不是行首時才需要跳過格子
-            totalGridsNeeded += (gridsPerRow - currentCol);
-          }
+      
+      // 將文本分行處理
+      const lines = preprocessedText.split('\n');
+      for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+        const line = lines[lineIndex];
+        
+        // 如果是空行，添加一整行的空格子
+        if (line.trim() === '') {
+          totalGridsNeeded += gridsPerRow;
         } else {
-          // 普通字符：佔用一個格子
-          totalGridsNeeded++;
+          // 非空行，添加字符數量的格子
+          totalGridsNeeded += line.length;
+          
+          // 如果不是最後一行，且不是剛好在行尾結束，則需要添加換行的格子
+          if (lineIndex < lines.length - 1) {
+            const currentCol = totalGridsNeeded % gridsPerRow;
+            if (currentCol > 0) {
+              totalGridsNeeded += (gridsPerRow - currentCol);
+            }
+          }
         }
       }
+      
       const totalPages = Math.ceil(totalGridsNeeded / charsPerPage);
       console.log(`Total grids needed: ${totalGridsNeeded}, Total pages needed: ${totalPages}`);
       
       // 處理每一頁
       let globalCharIndex = 0; // 追蹤整個文本的字符位置
+      let currentLine = 0; // 追蹤當前處理的行
       
       for (let pageNum = 0; pageNum < totalPages; pageNum++) {
         // 添加新頁面
@@ -159,22 +171,48 @@ async function generatePDF(text: string): Promise<Buffer> {
         let pageGridCount = 0;
         let pageChars = [];
         
-        // 收集這一頁的字符
-        while (globalCharIndex < characters.length && pageGridCount < charsPerPage) {
-          const char = characters[globalCharIndex];
-          pageChars.push(char);
-          globalCharIndex++;
+        // 收集這一頁的字符和處理空行
+        while (currentLine < lines.length && pageGridCount < charsPerPage) {
+          const line = lines[currentLine];
           
-          if (char === '\n') {
-            // 換行符：移到下一行開始
-            const currentCol = pageGridCount % gridsPerRow;
-            if (currentCol > 0) { // 只有在不是行首時才需要跳過格子
-              pageGridCount += (gridsPerRow - currentCol);
+          // 處理空行
+          if (line.trim() === '') {
+            // 添加一整行的空格子
+            for (let i = 0; i < gridsPerRow; i++) {
+              if (pageGridCount < charsPerPage) {
+                pageChars.push(''); // 添加空字符
+                pageGridCount++;
+              }
             }
-          } else {
-            // 普通字符：佔用一個格子
-            pageGridCount++;
+            currentLine++;
+            continue;
           }
+          
+          // 處理非空行的字符
+          for (let i = 0; i < line.length; i++) {
+            if (pageGridCount >= charsPerPage) break;
+            
+            const char = line[i];
+            pageChars.push(char);
+            pageGridCount++;
+            globalCharIndex++;
+          }
+          
+          // 如果不是最後一行，且不是剛好在行尾結束，則需要添加換行的格子
+          if (currentLine < lines.length - 1) {
+            const currentCol = pageGridCount % gridsPerRow;
+            if (currentCol > 0) {
+              const emptyCount = gridsPerRow - currentCol;
+              for (let i = 0; i < emptyCount; i++) {
+                if (pageGridCount < charsPerPage) {
+                  pageChars.push(''); // 添加空字符表示換行
+                  pageGridCount++;
+                }
+              }
+            }
+          }
+          
+          currentLine++;
           
           // 檢查是否達到頁面限制
           if (pageGridCount >= charsPerPage) {
@@ -214,10 +252,11 @@ async function generatePDF(text: string): Promise<Buffer> {
         for (let i = 0; i < pageChars.length; i++) {
           const char = pageChars[i];
           
-          // 處理換行字符
-          if (char === '\n') {
-            // 只有在不是行首時才換行
-            if (col > 0) {
+          // 如果是空字符，只移動位置不繪製
+          if (char === '') {
+            col++;
+            // 如果到達行尾，移到下一行
+            if (col >= gridsPerRow) {
               row++;
               col = 0;
             }
