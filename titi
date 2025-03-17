@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# 強制自動執行
+set -e  # 發生錯誤時立即停止執行
+
+PROJECT_DIR="$HOME/helphelp-titi"
+# 設定開發伺服器的URL (通常為localhost加上連接埠號碼)
+DEV_URL="http://localhost:5173"
+
+# 定義一個函數來根據作業系統開啟瀏覽器
+open_browser() {
+  echo "🌐 正在瀏覽器中打開 $DEV_URL..."
+  
+  # 根據不同的作業系統使用不同的命令
+  case "$(uname -s)" in
+    Darwin*)    # macOS
+      open "$DEV_URL"
+      ;;
+    Linux*)     # Linux
+      if command -v xdg-open &> /dev/null; then
+        xdg-open "$DEV_URL"
+      elif command -v sensible-browser &> /dev/null; then
+        sensible-browser "$DEV_URL"
+      fi
+      ;;
+    CYGWIN*|MINGW*|MSYS*)  # Windows
+      start "$DEV_URL"
+      ;;
+  esac
+}
+
+# 如果專案已存在，直接進入並啟動開發伺服器
+if [ -d "$PROJECT_DIR" ]; then
+  echo "✅ 專案已存在，直接啟動開發伺服器..."
+  cd "$PROJECT_DIR"
+  # 在背景中啟動開發伺服器，等待幾秒讓伺服器啟動完成，然後打開瀏覽器
+  pnpm dev & 
+  sleep 5  # 等待5秒讓伺服器有足夠時間啟動
+  open_browser
+  # 將腳本進程保持運行
+  wait
+  exit 0
+fi
+
+echo "🚀 開始安裝開發環境..."
+
+# 安裝 Homebrew（如果尚未安裝）
+if ! command -v brew &> /dev/null; then
+  echo "🔧 安裝 Homebrew..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+else
+  echo "✅ Homebrew 已安裝"
+fi
+
+# 安裝 Git
+if ! command -v git &> /dev/null; then
+  echo "🔧 安裝 Git..."
+  brew install git
+else
+  echo "✅ Git 已安裝"
+fi
+
+# 安裝 Node.js（包含 npm）
+if ! command -v node &> /dev/null; then
+  echo "🔧 安裝 Node.js..."
+  brew install node
+else
+  echo "✅ Node.js 已安裝"
+fi
+
+# 安裝 pnpm
+if ! command -v pnpm &> /dev/null; then
+  echo "🔧 安裝 pnpm..."
+  npm install -g pnpm
+else
+  echo "✅ pnpm 已安裝"
+fi
+
+# Clone 專案（如果尚未存在）
+echo "🔧 下載 GitHub 專案到 $PROJECT_DIR..."
+git clone https://github.com/Tomlord1122/helphelp-titi.git "$PROJECT_DIR"
+
+# 進入專案資料夾
+cd "$PROJECT_DIR"
+
+# 安裝專案依賴
+echo "📦 安裝專案依賴..."
+pnpm install
+
+# 啟動開發伺服器並自動打開瀏覽器
+echo "🚀 啟動開發伺服器..."
+pnpm dev &  # 在背景中運行伺服器
+sleep 3     # 等待3秒讓伺服器啟動完成
+open_browser
+wait        # 保持腳本運行
