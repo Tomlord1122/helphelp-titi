@@ -72,7 +72,7 @@
   <div class="max-w-3xl mx-auto">
     <div class="text-center">
       <h1 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-        Composition Generator
+        👩‍⚖️
       </h1>
       <p class="mt-3 text-lg text-gray-500">
         Upload a text file or type directly to convert it to a PDF with Chinese character grids

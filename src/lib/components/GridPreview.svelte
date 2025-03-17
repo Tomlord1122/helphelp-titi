@@ -20,7 +20,7 @@
         </div>
       </div>
       <p class="mt-2 text-xs text-gray-500 text-center">
-        Showing preview of first few rows. The actual PDF will have 15 characters per row and 20 rows per page.
+        這邊只是預覽，生出來長怎樣要載下來再確認一次
       </p>
     </div>
   </div>

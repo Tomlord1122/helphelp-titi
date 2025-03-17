@@ -20,7 +20,7 @@
 
 <div>
   <label for="file-upload" class="block  text-xl font-medium text-gray-700">
-    Upload Text File
+    上傳文字檔 (.txt)
   </label>
   <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md  hover:scale-105 transition-all duration-300">
     <div class="space-y-1 text-center">

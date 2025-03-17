@@ -3,7 +3,7 @@
 </script>
 
 <div class="bg-white shadow-md rounded-lg p-6">
-  <h2 class="text-lg font-medium text-gray-900">For my love, KT💕</h2>
+  <h2 class="text-lg font-medium text-gray-900">For my love, 凱媞💕</h2>
   <!-- <div class="mt-4 prose prose-indigo">
     <ul>
       <li>Total of 300 grids, each grid is 1.1 cm wide and 0.95 cm long</li>
