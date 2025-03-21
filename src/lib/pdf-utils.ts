@@ -19,7 +19,7 @@ export function base64ToBlob(base64: string, mimeType: string): Blob {
 }
 
 // Generate and download PDF with timeout
-export async function generatePDF(fileContent: string, fileName: string | null): Promise<{ success: string } | { error: string }> {
+export async function generatePDF(fileContent: string, fileName: string | null, useIndentation: boolean = false): Promise<{ success: string } | { error: string }> {
   if (!fileContent) {
     return { error: 'Please upload a text file first'  };
   }
@@ -33,9 +33,9 @@ export async function generatePDF(fileContent: string, fileName: string | null):
   
   try {
     console.log("Starting PDF generation request with content length:", fileContent.length);
+    console.log("Using indentation format:", useIndentation);
     
     // Prepare content for submission
-    // Limit content to 300 characters 
     console.log(`Using ${fileContent.length} characters for PDF generation`);
     
     // Call our API endpoint to generate the PDF
@@ -44,7 +44,7 @@ export async function generatePDF(fileContent: string, fileName: string | null):
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text: fileContent }),
+      body: JSON.stringify({ text: fileContent, useIndentation }),
       signal: controller.signal
     });
     

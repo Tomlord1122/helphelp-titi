@@ -11,6 +11,7 @@
   let success = $state<string>('');
   let inputMode = $state<'file' | 'text'>('file');
   let directText = $state<string>('');
+  let useIndentation = $state<boolean>(false);
   
   function handleFileLoad(selectedFile: File, content: string) {
     file = selectedFile;
@@ -36,6 +37,12 @@
     success = '';
   }
   
+  function toggleIndentation() {
+    useIndentation = !useIndentation;
+    error = '';
+    success = '';
+  }
+  
   async function handleGeneratePDF() {
     const contentToUse = inputMode === 'file' ? fileContent : directText;
     
@@ -52,7 +59,7 @@
     
     try {
       const fileName = inputMode === 'file' ? (file?.name || null) : null;
-      const result = await generatePDF(contentToUse, fileName);
+      const result = await generatePDF(contentToUse, fileName, useIndentation);
       
       if ('error' in result) {
         error = result.error;
@@ -146,6 +153,29 @@
             {/if}
           </div>
         {/if}
+        
+        <!-- 格式選擇 -->
+        <div class="border-t border-gray-300 pt-4">
+          <div class="flex items-center justify-between">
+            <label for="format-toggle" class="text-sm font-medium text-gray-700">
+              散文格式（每行超過 15 個字後自動縮進兩格）
+            </label>
+            <button 
+              type="button"
+              onclick={toggleIndentation}
+              class={`relative inline-flex h-6 w-11 items-center rounded-full focus:outline-none ${useIndentation ? 'bg-indigo-600' : 'bg-gray-200'}`}
+              id="format-toggle"
+              aria-label={useIndentation ? "禁用散文格式" : "啟用散文格式"}
+            >
+              <span
+                class={`inline-block h-5 w-5 transform rounded-full bg-white transition ${useIndentation ? 'translate-x-6' : 'translate-x-1'}`}
+              ></span>
+            </button>
+          </div>
+          <p class="mt-1 text-xs text-gray-500">
+            啟用此選項會在行長超過 15 個字且需要換行時自動添加兩個空格的縮進，適用於散文排版。
+          </p>
+        </div>
         
         {#if error}
           <div class="rounded-md bg-red-50 p-4">
