@@ -189,17 +189,35 @@ async function generatePDF(text: string): Promise<Buffer> {
           }
           
           // 處理非空行的字符
+          let processedCharsInLine = 0; // 記錄此行已處理的字符數
+          
           for (let i = 0; i < line.length; i++) {
-            if (pageGridCount >= charsPerPage) break;
+            if (pageGridCount >= charsPerPage) {
+              // 達到頁面限制時，記錄已處理的位置
+              processedCharsInLine = i;
+              break;
+            }
             
             const char = line[i];
             pageChars.push(char);
             pageGridCount++;
             globalCharIndex++;
+            processedCharsInLine++;
+          }
+          
+          // 檢查是否已處理完當前行
+          const hasCompletedLine = processedCharsInLine === line.length;
+          
+          // 如果這行沒有完全處理完（頁面已滿），不增加行指針
+          if (!hasCompletedLine) {
+            // 創建一個新的行，只包含未處理的部分
+            lines[currentLine] = line.substring(processedCharsInLine);
+            console.log(`Split line at char ${processedCharsInLine}, remaining: ${lines[currentLine].length} chars`);
+            break; // 跳出循環，下一頁繼續處理
           }
           
           // 如果不是最後一行，且不是剛好在行尾結束，則需要添加換行的格子
-          if (currentLine < lines.length - 1) {
+          if (hasCompletedLine && currentLine < lines.length - 1) {
             const currentCol = pageGridCount % gridsPerRow;
             if (currentCol > 0) {
               const emptyCount = gridsPerRow - currentCol;
@@ -212,7 +230,10 @@ async function generatePDF(text: string): Promise<Buffer> {
             }
           }
           
-          currentLine++;
+          // 只有在完整處理了這一行後才增加行指針
+          if (hasCompletedLine) {
+            currentLine++;
+          }
           
           // 檢查是否達到頁面限制
           if (pageGridCount >= charsPerPage) {
