@@ -98,7 +98,7 @@ async function generatePDF(text: string): Promise<Buffer> {
       }
       
       // Set up the grid parameters (in points, 1cm = 28.35pt)
-      const gridWidth = 1.15 * 28.35; // 1.1cm in points
+      const gridWidth = 1.125 * 28.35; // 1.1cm in points
       const gridHeight = 0.95 * 28.35; // 0.95cm in points
       const rowSpacing = 0.35 * 28.35; // 0.35cm in points
       const gridsPerRow = 15;
@@ -423,7 +423,7 @@ async function generatePDF2(text: string): Promise<Buffer> {
       }
       
       // Set up the grid parameters (in points, 1cm = 28.35pt)
-      const gridWidth = 1.15 * 28.35; // 1.1cm in points
+      const gridWidth = 1.125 * 28.35; // 1.1cm in points
       const gridHeight = 0.95 * 28.35; // 0.95cm in points
       const rowSpacing = 0.35 * 28.35; // 0.35cm in points
       const gridsPerRow = 15;
