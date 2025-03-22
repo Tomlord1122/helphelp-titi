@@ -66,13 +66,7 @@ async function generatePDF(text: string): Promise<Buffer> {
       
       // Add alternative font paths to check
       const alternativePaths = [
-        path.join(process.cwd(), 'static', 'fonts', 'KaiTi.ttf'),
-        path.join(process.cwd(), 'build', 'static', 'fonts', 'KaiTi.ttf'),
-        path.join(process.cwd(), 'public', 'fonts', 'KaiTi.ttf'),
-        path.join("./KaiTi.ttf"),
-        // For AWS Lambda or similar environments
-        '/opt/fonts/KaiTi.ttf',
-        '/tmp/fonts/KaiTi.ttf'
+        path.join(process.cwd(), 'static', 'fonts', 'Kaiu.ttf'),
       ];
       
       // Try to find the font in any of the possible locations
@@ -391,13 +385,7 @@ async function generatePDF2(text: string): Promise<Buffer> {
       
       // Add alternative font paths to check
       const alternativePaths = [
-        path.join(process.cwd(), 'static', 'fonts', 'KaiTi.ttf'),
-        path.join(process.cwd(), 'build', 'static', 'fonts', 'KaiTi.ttf'),
-        path.join(process.cwd(), 'public', 'fonts', 'KaiTi.ttf'),
-        path.join("./KaiTi.ttf"),
-        // For AWS Lambda or similar environments
-        '/opt/fonts/KaiTi.ttf',
-        '/tmp/fonts/KaiTi.ttf'
+        path.join(process.cwd(), 'static', 'fonts', 'Kaiu.ttf'),
       ];
       
       // Try to find the font in any of the possible locations
